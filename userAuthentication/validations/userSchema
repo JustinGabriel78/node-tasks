@@ -9,7 +9,7 @@ const emailSchema = yup.object({
 })
 
 const passwordSchema = yup.object({
-    password: yup.string().min(6).required('Password is required!')
+    password: yup.string().min(8).max(15).required('Password is required!')
 })
 
 module.exports = {
