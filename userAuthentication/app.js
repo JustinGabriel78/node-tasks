@@ -14,7 +14,7 @@ mongoose.connect(dbConfig.uri,dbConfig.options)
 
 
 app.use(express.json());
-app.use('/auth', userRoutes);
+app.use(userRoutes);
 
 app.listen(3000, () => 'connected to port 3000');
 
