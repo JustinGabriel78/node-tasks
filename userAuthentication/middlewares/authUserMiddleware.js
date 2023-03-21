@@ -67,7 +67,7 @@ const requireAuth = (req, res, next) => {
             if(err) {
                return  res.status(400).send({data: null, message: err.message, success: false})
             } else {
-    
+                req.decoded = decodedToken;
                 return next()
             }
         } )

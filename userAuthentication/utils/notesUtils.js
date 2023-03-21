@@ -69,11 +69,12 @@ const idError = (id) => {
  * Function to load all the notes
  * @returns {array}
  */
-const loadNotes = () => {
+const loadNotes = async(userId) => {
     try{
         const dataBuffer = fs.readFileSync('data.json');
         const dataJSON = dataBuffer.toString()
         return JSON.parse(dataJSON)
+
 
     } catch {
         return []

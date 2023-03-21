@@ -5,7 +5,7 @@ const addNotesSchema = yup.object({
 })
 
 const noteIdSchema = yup.object({
-    id: yup.number().strict().required().typeError("Id must be a number")
+    id: yup.string().strict().required()
 })
 
 
