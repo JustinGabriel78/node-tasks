@@ -1,111 +1,143 @@
 const notesUtils = require("../utils/notesUtils");
 
-const Notes = require("../models/notesModels");
 
-const getAllNotes = async (req, res) => {
+/**
+ * Function used to get all the notes of the user from database
+ * @async
+ * @param {object} req - The HTTP request object
+ * @param {object} res - The HTTP response object
+ * @throws {Error} - if there is an error while loading notes from the db,
+ * @returns {Object} The HTTP response object containing the result of the getAllNotes
+ */
+const getAllNotes = async (req,res) => {
   try {
-    const results = await Notes.find({ userId: req.decoded.id });
-    if (results.length !== 0) {
-      const allNotes = results.map((result) => {
-        return { id: result._id, text: result.text };
-      });
-      return res
-        .status(200)
-        .send({ data: allNotes, message: "All notes", success: true });
-    } else {
-      res
-        .status(400)
-        .send({ data: null, message: "Notes not found", success: false });
-    }
-  } catch (err) {
-    res.status(500).send({ data: null, message: err.message, success: false });
-  }
-};
+    const { userId }= req.decoded;
+    const result = await notesUtils.loadNotes(userId);
 
+    if (result) {
+      return res.status(200).json({ data: result, message: "All notes", success: true })
+    } else {
+      return res.status(404).json({ data: null, message: "No notes were found for this user", success: false })
+    }
+  } catch (error) { 
+    console.error(error);
+    return res.status(500).json({ data: null, message: error.message, success: false })
+   }
+}
+
+
+/**
+ * Function used to get a note corresponding to given noteId
+ * @async
+ * @param {object} req - The HTTP request object
+ * @param {object} res - The HTTP response object
+ * @throws {Error} - if there is an error while reading the note
+ * @returns {Object} The HTTP response object containing the result of the getNoteById
+ */
 const getNoteById = async (req, res) => {
   try {
-    const noteId = req.params.id;
-    const results = await Notes.find({ userId: req.decoded.id });
-    if (results.length !== 0) {
-      const noteObject = results.find(
-        (result) => result._id.toString() === noteId
-      );
-      const note = { id: noteObject._id, text: noteObject.text };
-      return res
-        .status(200)
-        .send({
-          data: note,
-          message: "Note successfully fetched",
-          success: true,
-        });
+    const { id: noteId} = req.params;
+    const { userId }= req.decoded;
+    console.log("noteId",typeof noteId)
+    const note = await notesUtils.readNote(noteId, userId)
+
+    if(note){
+      return res.status(200).json({data: note, message: "Note successfully fetched",success: true,});
     } else {
-      res
-        .status(400)
-        .send({ data: null, message: "Notes not found", success: false });
+      return res.status(404).json({ data: null, message: "No notes were found under this ID", success: false });
     }
-  } catch (err) {
-    res.status(500).send({ data: null, message: err.message, success: false });
+
+  } catch (error) {
+    console.error(error)
+    res.status(500).send({ data: null, message: error.message, success: false });
   }
 };
 
+
+/**
+ * Function used to add a note 
+ * @async
+ * @param {object} req - The HTTP request object
+ * @param {object} res - The HTTP response object
+ * @throws {Error} - if there is an error while adding the note
+ * @returns {Object} The HTTP response object containing the result of the addNote
+ */
 const addNote = async (req, res) => {
   try {
-    req.body.userId = req.decoded.id;
-    const note = new Notes(req.body);
-    const savedNote = await note.save();
-    if (savedNote) {
-      return res
-        .status(201)
-        .send({
-          data: { id: savedNote._id, text: savedNote.text },
-          message: "Note added Successfully",
-          success: true,
-        });
+    req.body.userId = req.decoded.userId;
+    const data = req.body
+    const result = await notesUtils.addNote(data)
+    if (result) {
+      return res.status(201).send({data: result, message: "Note added Successfully",success: true});
+    } else {
+      return res.status(404).send({data: result, message: "Note doesn't added",success: false});
     }
-  } catch (err) {
-    res.status(500).send({ data: null, message: err.message, success: false });
+
+  } catch (error) {
+    res.status(500).send({ data: null, message: error.message, success: false });
   }
 };
 
+
+/**
+ * Function used to update a note
+ * @async
+ * @param {object} req - The HTTP request object
+ * @param {object} res - The HTTP response object
+ * @throws {Error} - if there is an error while updating the note
+ * @returns {Object} The HTTP response object containing the result of the updateNote
+ */
 const updateNote = async (req, res) => {
-  try {
-    const noteId = req.params.id;
-    const data = req.body.text;
-    const filter = { userId: req.decoded.id, _id: noteId };
-    const update = { text: data };
-    const doc = await Notes.findOneAndUpdate(filter, update, {
-      new: true,
-    });
-    const updatedNotes = { id: doc._id, text: doc.text };
-    res
-      .status(200)
-      .send({ data: updatedNotes, message: "Note updated", success: true });
-  } catch (err) {
-    res.status(500).send({ data: null, message: err.message, success: false });
-  }
-};
+  try{
+    const {id: noteId} = req.params;
+    const { userId }= req.decoded;
+    const {text: data} = req.body;
+    const result = await notesUtils.updateNote(noteId, userId, data)
 
+    if(result){
+      return res.status(200).send({ data: result, message: "Note updated", success: true })
+    }
+
+  }catch(error){
+        res.status(500).send({ data: null, message: error.message, success: false });
+  }
+}
+
+
+/**
+ * Function used to delete a note
+ * @async
+ * @param {object} req - The HTTP request object
+ * @param {object} res - The HTTP response object
+ * @throws {Error} - if there is an error while deleting the note
+ * @returns {Object} The HTTP response object containing the result of the deleteNote
+ */
 const deleteNote = async (req, res) => {
   try {
-    const noteId = req.params.id;
-    const filter = { userId: req.decoded.id, _id: noteId };
-    const isDeleted = await Notes.deleteOne(filter);
-    if (isDeleted.deletedCount) {
-      return res
-        .status(200)
-        .send({ data: null, message: "Note Deleted", success: true });
+    const {id: noteId} = req.params;
+    const { userId }= req.decoded;
+    const result = await notesUtils.deleteNote(noteId,userId);
+    if(result) {
+      return res.status(200).send({ data: null, message: "Note Deleted", success: true });
+    } else {
+      return res.status(404).send({ data: null, message: "ID not found", success: false });
     }
-    return res
-      .status(404)
-      .send({ data: null, message: "ID not found", success: false });
-  } catch (err) {
-    res.status(500).send({ data: null, message: err.message, success: false });
+  } catch(error) {
+      res.status(500).send({ data: null, message: err.message, success: false });
   }
-};
+}
 
+
+/**
+ * Function used to send the invalid url message
+ * @param {object} req - The HTTP request object
+ * @param {object} res - The HTTP response object
+ */
 const invalidUrl = (req, res) => {
   res.status(400).send({ data: null, message: "Invalid url", success: false });
 };
+
+
 
 module.exports = {
   getAllNotes,

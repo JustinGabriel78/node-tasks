@@ -4,6 +4,10 @@ const jwt = require("jsonwebtoken");
 const dotenv = require('dotenv');
 dotenv.config();
 
+/**
+ * Middleware function to validate if the email already exist or not
+ * @returns {Object} The HTTP response object containing the result of the email validation
+ */
 const emailExistValidation = () => (req,res,next) => {
     try{
         const email = req.body.email;
@@ -14,11 +18,15 @@ const emailExistValidation = () => (req,res,next) => {
             }
             return next()
         })
-    } catch(err) {
-        res.status(400).send({data: null, message: err.message, sucess: false})
+    } catch(error) {
+        res.status(400).send({data: null, message: error.message, sucess: false})
     }    
 }
 
+/**
+ * Middleware function to validate if the password matches with certain criterias
+ * @returns {Object} The HTTP response object containing the result of the password criteria matches or not
+ */
 const passwordCriteria = () => (req,res,next) => {
     try{
         const password = req.body.password;
@@ -28,11 +36,15 @@ const passwordCriteria = () => (req,res,next) => {
         return next()
         
 
-    }catch(err) {
-        res.status(400).send({data: null, message: err.message, sucess: false})
+    }catch(error) {
+        res.status(400).send({data: null, message: error.message, sucess: false})
     }
 }
 
+/**
+ * Middleware function to validate if the username already exist or not
+ * @returns {Object} The HTTP response object containing the result of the username already exist or not
+ */
 const userNameExistValidation = () => (req,res,next) => {
     try{
         const userName = req.body.userName;
@@ -43,16 +55,19 @@ const userNameExistValidation = () => (req,res,next) => {
             }
             return next()
         })
-    } catch(err) {
-        res.status(400).send({data: null, message: err.message, sucess: false})
+    } catch(error) {
+        res.status(400).send({data: null, message: error.message, sucess: false})
     }    
     
 }
 
+/**
+ * Middleware function to validate user input against a given schema.
+ * @param {Object} schema - The schema object to validate against 
+ */
 const userValidation = (schema) => async (req,res,next) => {
-    const body = req.body;
-
     try {
+        const body = req.body;
         await schema.validate(body);
         return next();
     } catch(error) {
@@ -60,20 +75,33 @@ const userValidation = (schema) => async (req,res,next) => {
     }
 }
 
+
+/**
+ * Middleware function to require authentication for protected routes
+ * @param {object} req - The HTTP request object 
+ * @param {object} res - The HTTP request object 
+ * @param {function} next - The next function to be called in the middleware chain.
+ * @returns {Object} - Returns either the next function or a response object with an error message and status code.
+ */
 const requireAuth = (req, res, next) => {
-    const token = req.cookies.jwt;
-    if(token) {
-        jwt.verify(token, process.env.JWT_TOKEN, (err, decodedToken) => {
-            if(err) {
-               return  res.status(400).send({data: null, message: err.message, success: false})
-            } else {
-                req.decoded = decodedToken;
-                return next()
-            }
-        } )
-    } else {
-        res.status(500).send({data: null, message: "Please signUp or Login to get the access", success: false})
+    try{
+        const token = req.cookies.jwt;
+        if(token) {
+            jwt.verify(token, process.env.JWT_TOKEN, (error, decodedToken) => {
+                if(error) {
+                   return  res.status(400).send({data: null, message: error.message, success: false})
+                } else {
+                    req.decoded = decodedToken;
+                    return next()
+                }
+            } )
+        } else {
+            res.status(500).send({data: null, message: "Please signUp or Login to get the access", success: false})
+        }
+    } catch(error) {
+        return res.status(400).send({data: null, message: error.message, sucess: false})
     }
+
 }
 
 
