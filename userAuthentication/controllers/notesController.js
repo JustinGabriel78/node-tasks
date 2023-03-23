@@ -127,23 +127,10 @@ const deleteNote = async (req, res) => {
   }
 }
 
-
-/**
- * Function used to send the invalid url message
- * @param {object} req - The HTTP request object
- * @param {object} res - The HTTP response object
- */
-const invalidUrl = (req, res) => {
-  res.status(400).send({ data: null, message: "Invalid url", success: false });
-};
-
-
-
 module.exports = {
   getAllNotes,
   getNoteById,
   addNote,
   updateNote,
   deleteNote,
-  invalidUrl,
 };

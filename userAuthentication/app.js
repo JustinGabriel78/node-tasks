@@ -18,5 +18,12 @@ app.use(express.json());
 // routes
 app.use(userRoutes);
 
+// unmatched routes
+
+app.use((req,res) => {
+  res.status(404).send({ data: null, message: "Invalid url", success: false });
+
+})
+
 app.listen(3000, () => 'connected to port 3000');
 
