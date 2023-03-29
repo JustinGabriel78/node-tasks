@@ -62,8 +62,8 @@ const readNote = async (noteId,userId) => {
 const deleteNote = async (noteId, userId) => {
     try {
         const filter = { userId, _id: noteId};
-        const isDeleted = await Notes.deleteOne(filter);
-        return isDeleted.deletedCount 
+        const isDeleted = await Notes.findOneAndDelete(filter);
+        return isDeleted
     } catch (error){
         console.error(error)
         return Promise.reject(error)

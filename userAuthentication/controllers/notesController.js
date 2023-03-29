@@ -38,7 +38,6 @@ const getNoteById = async (req, res) => {
   try {
     const { id: noteId} = req.params;
     const { userId }= req.decoded;
-    console.log("noteId",typeof noteId)
     const note = await notesUtils.readNote(noteId, userId)
 
     if(note){
