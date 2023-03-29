@@ -1,4 +1,4 @@
-const notesUtils = require("../utils/notesUtils");
+const notesUtils = require("../services/notesServices");
 
 
 /**
